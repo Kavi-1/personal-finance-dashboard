@@ -1,16 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TransactionForm from "./components/TransactionForm";
-import { Transaction } from "../types/Transaction";
+import { Transaction, NewTransaction } from "../types/Transaction";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Handler to add a transaction
-  const handleAddTransaction = (transaction: Transaction) => {
-    setTransactions([transaction, ...transactions]);
+  const load = async () => {
+    try {
+      setError(null);
+      const res = await fetch("/api/transactions", { cache: "no-store" });
+      if (!res.ok) throw new Error(`GET /api/transactions failed`);
+      const data: Transaction[] = await res.json();
+      setTransactions(data);
+    } catch (e: any) {
+      setError(e.message || "Failed to load");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleAddTransaction = async (t: NewTransaction) => {
+    try {
+      const res = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(t),
+      });
+      if (!res.ok) throw new Error(`POST /api/transactions failed`);
+      const created: Transaction = await res.json();
+      setTransactions((prev) => [created, ...prev]);
+    } catch (e: any) {
+      alert(e.message || "Failed to add");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const res = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+    } else {
+      const { error } = await res.json().catch(() => ({ error: "Delete failed" }));
+      alert(error);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -19,24 +60,36 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold">Personal Finance Dashboard</h1>
       </nav>
 
-      {/* Main content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Transaction Form */}
+        {/* Form */}
         <div className="bg-white p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-4 text-black">Add Transaction</h2>
           <TransactionForm onAdd={handleAddTransaction} />
         </div>
 
-        {/* Placeholder for Transactions List */}
+        {/* List */}
         <div className="md:col-span-2 bg-white p-4 rounded shadow flex flex-col gap-4">
           <h2 className="text-xl font-semibold">Transactions</h2>
-          {transactions.length === 0 ? (
+          {error && <p className="text-red-600">Error: {error}</p>}
+          {loading ? (
+            <p>Loading…</p>
+          ) : transactions.length === 0 ? (
             <p>No transactions yet.</p>
           ) : (
-            <ul>
+            <ul className="space-y-2">
               {transactions.map((t) => (
-                <li key={t.id}>
-                  {t.category}: ${t.amount} on {t.date} | {t.notes}
+                <li key={t.id} className="flex items-center justify-between">
+                  <span>
+                    <span className="font-medium">{t.category}</span>: ${t.amount} on {t.date}
+                    {t.notes ? ` | ${t.notes}` : ""}
+                  </span>
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={() => handleDelete(t.id)}
+                    aria-label={`Delete ${t.category} ${t.amount} on ${t.date}`}
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ul>

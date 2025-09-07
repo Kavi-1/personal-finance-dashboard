@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
-import { Transaction } from "../../types/Transaction";
+import { NewTransaction } from "../../types/Transaction";
 
 interface TransactionFormProps {
-    onAdd: (transaction: Transaction) => void;
+    onAdd: (transaction: NewTransaction) => void; // no id here
 }
 
 export default function TransactionForm({ onAdd }: TransactionFormProps) {
@@ -16,22 +16,28 @@ export default function TransactionForm({ onAdd }: TransactionFormProps) {
         notes: "",
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const newTransaction: Transaction = {
-            id: Date.now(),
+
+        const newTransaction: NewTransaction = {
             amount: Number(form.amount),
-            category: form.category,
+            category: form.category.trim(),
             date: form.date,
-            notes: form.notes,
+            notes: form.notes.trim(),
         };
-        onAdd(newTransaction);
+
+        onAdd(newTransaction);                 // let server generate id
         setForm({ amount: "", category: "", date: "", notes: "" });
     };
+
+    const disabled =
+        !form.amount || !form.category || !form.date || !form.notes;
 
     return (
         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
@@ -65,12 +71,7 @@ export default function TransactionForm({ onAdd }: TransactionFormProps) {
                 onChange={handleChange}
                 className="border p-2 rounded"
             />
-            <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={!form.amount || !form.category || !form.date || !form.notes}
-            >
+            <Button type="submit" variant="contained" color="primary" disabled={disabled}>
                 Add
             </Button>
         </form>

@@ -1,7 +1,15 @@
 export interface Transaction {
-    id: number;
+    id: string;
     amount: number;
     category: string;
     date: string;
     notes: string;
+    createdAt?: string;
 }
+
+export type NewTransaction = {
+    amount: number;
+    category: string;
+    date: string;
+    notes: string;
+};
