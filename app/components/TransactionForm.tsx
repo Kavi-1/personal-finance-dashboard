@@ -3,31 +3,26 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
 import { NewTransaction } from "../../types/Transaction";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import { CATEGORIES } from "@/constants/categories";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 interface TransactionFormProps {
     onAdd: (transaction: NewTransaction) => void; // no id here
 }
 
 export default function TransactionForm({ onAdd }: TransactionFormProps) {
-    const [form, setForm] = useState({
-        amount: "",
-        category: "",
-        date: "",
-        notes: "",
-    });
-
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+    const [form, setForm] = useState({ amount: "", category: "", date: "", notes: "" });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         const newTransaction: NewTransaction = {
             amount: Number(form.amount),
-            category: form.category.trim(),
+            category: form.category,
             date: form.date,
             notes: form.notes.trim(),
         };
@@ -37,39 +32,70 @@ export default function TransactionForm({ onAdd }: TransactionFormProps) {
     };
 
     const disabled =
-        !form.amount || !form.category || !form.date || !form.notes;
+        !form.amount || !form.category || !form.date;
 
     return (
         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-            <input
+            <TextField
+                fullWidth
+                size="small"
                 type="number"
-                name="amount"
-                placeholder="Amount"
+                label="Amount"
+                placeholder="0.00"
                 value={form.amount}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                required
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
             />
-            <input
-                type="text"
+            <TextField
+                select
                 name="category"
-                placeholder="Category"
+                label="Category"
                 value={form.category}
-                onChange={handleChange}
-                className="border p-2 rounded"
-            />
-            <input
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                className="border p-2 rounded"
-            />
-            <textarea
-                name="notes"
+                required
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                size="small"
+            >
+                <MenuItem value="" disabled>
+                    Select a category…
+                </MenuItem>
+                {CATEGORIES.map((c) => (
+                    <MenuItem key={c} value={c}>
+                        {c}
+                    </MenuItem>
+                ))}
+            </TextField>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                    label="Date"
+                    value={form.date ? dayjs(form.date) : null}
+                    onChange={(v) =>
+                        setForm((f) => ({ ...f, date: v ? v.format("YYYY-MM-D") : "" }))
+                    }
+                    slotProps={{
+                        textField: {
+                            fullWidth: true,
+                            size: "small",
+                            required: true,
+                            //gray
+                            sx: {
+                                "& .MuiInputLabel-root": { color: "text.secondary" },
+                                "& .MuiInputBase-input::placeholder": { color: "text.secondary", opacity: 1 },
+                            },
+                        },
+                    }}
+                    disableFuture      // prevent future dates
+                />
+            </LocalizationProvider>
+
+            <TextField
+                size="small"
+                label="Notes"
+                placeholder="Add description"
+                multiline
+                minRows={2}
                 value={form.notes}
-                placeholder="Notes"
-                onChange={handleChange}
-                className="border p-2 rounded"
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
             <Button type="submit" variant="contained" color="primary" disabled={disabled}>
                 Add

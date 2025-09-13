@@ -15,6 +15,42 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import type { Transaction } from "../../types/Transaction";
 
+// better colors
+const CATEGORY_BASE = [
+    "#6366F1",
+    "#10B981",
+    "#0EA5E9",
+    "#F59E0B",
+    "#F43F5E",
+    "#8B5CF6",
+    "#14B8A6",
+    "#84CC16",
+    "#3B82F6",
+    "#FB923C",
+];
+
+function hexToRgba(hex: string, a = 0.9) {
+    const m = hex.replace("#", "");
+    const r = parseInt(m.slice(0, 2), 16);
+    const g = parseInt(m.slice(2, 4), 16);
+    const b = parseInt(m.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+// same colors for each category
+function hashLabelToIndex(label: string, mod: number) {
+    let h = 0;
+    for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) | 0;
+    return Math.abs(h) % mod;
+}
+
+function colorsForLabels(labels: string[]) {
+    const bg = labels.map(l => hexToRgba(CATEGORY_BASE[hashLabelToIndex(l, CATEGORY_BASE.length)], 0.88));
+    const hover = labels.map(l => hexToRgba(CATEGORY_BASE[hashLabelToIndex(l, CATEGORY_BASE.length)], 0.7));
+    return { bg, hover };
+}
+
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, Title, ChartDataLabels);
 
 ChartJS.defaults.font.family =
@@ -125,12 +161,14 @@ export default function SpendingCharts({ transactions }: Props) {
         },
     };
 
-    // --- Doughnut (placeholder when no data) ---
     const hasCatData = hasData && byCatRaw.data.some((v) => v > 0);
     const catLabels = hasCatData ? byCatRaw.labels : ["No data"];
-    const catData = hasCatData ? byCatRaw.data : [1]; // render a neutral ring
-    const colors = hasCatData ? makePalette(catLabels.length, 0.9) : ["rgba(203,213,225,0.6)"]; // slate-300
-    const colorsHover = hasCatData ? makePalette(catLabels.length, 0.7) : ["rgba(203,213,225,0.8)"];
+    const catData = hasCatData ? byCatRaw.data : [1];
+
+    const { bg: colors, hover: colorsHover } = hasCatData
+        ? colorsForLabels(catLabels)
+        : { bg: ["rgba(203,213,225,0.6)"], hover: ["rgba(203,213,225,0.8)"] };
+
 
     const doughnutData = {
         labels: catLabels,
@@ -139,7 +177,8 @@ export default function SpendingCharts({ transactions }: Props) {
                 data: catData,
                 backgroundColor: colors,
                 hoverBackgroundColor: colorsHover,
-                borderWidth: 0,
+                borderColor: "#fff",
+                borderWidth: 2,
             },
         ],
     };
@@ -171,11 +210,11 @@ export default function SpendingCharts({ transactions }: Props) {
             {/* KPI header (always visible) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded shadow">
-                    <div className="text-sm text-slate-500">Total Spend</div>
+                    <div className="text-sm text-slate-500">Total Spent</div>
                     <div className="text-2xl text-emerald-700 font-semibold">{fmtFull.format(total)}</div>
                 </div>
                 <div className="bg-white p-4 rounded shadow">
-                    <div className="text-sm text-slate-500">Avg per Transaction</div>
+                    <div className="text-sm text-slate-500">Average per Transaction</div>
                     <div className="text-2xl text-emerald-700 font-semibold">{fmtFull.format(avg)}</div>
                 </div>
                 <div className="bg-white p-4 rounded shadow">
