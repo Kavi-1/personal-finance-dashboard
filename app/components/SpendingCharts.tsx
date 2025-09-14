@@ -1,17 +1,8 @@
 "use client";
 
-import { Bar, Doughnut } from "react-chartjs-2";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    ArcElement,
-    Tooltip,
-    Legend,
-    Title,
-    type ChartOptions,
-} from "chart.js";
+import { Line, Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Tooltip, Legend, Title, Filler, type ChartOptions, type ScriptableContext } from "chart.js";
+
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import type { Transaction } from "../../types/Transaction";
 
@@ -50,8 +41,7 @@ function colorsForLabels(labels: string[]) {
     return { bg, hover };
 }
 
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, Title, ChartDataLabels);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Tooltip, Legend, Title, Filler, ChartDataLabels);
 
 ChartJS.defaults.font.family =
     "'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
@@ -112,22 +102,8 @@ export default function SpendingCharts({ transactions }: Props) {
     const monthly = aggregateByMonthLastN(transactions, 12); // always returns 12 labels
     const byCatRaw = aggregateByCategory(transactions);
 
-    // --- Bar chart (always 12 months; zeros if none) ---
-    const barData = {
-        labels: monthly.labels,
-        datasets: [
-            {
-                label: "Monthly Total",
-                data: monthly.data,
-                backgroundColor: "rgba(79,70,229,0.65)",
-                borderColor: "rgba(79,70,229,0.95)",
-                borderWidth: 1,
-                borderRadius: 10,
-            },
-        ],
-    };
-
-    const optionsBar: ChartOptions<"bar"> = {
+    // line chart
+    const lineOptions: ChartOptions<"line"> = {
         responsive: true,
         maintainAspectRatio: false,
         layout: { padding: 8 },
@@ -135,13 +111,7 @@ export default function SpendingCharts({ transactions }: Props) {
             title: { display: true, text: "Spending by Month (last 12 months)" },
             legend: { display: false },
             tooltip: { callbacks: { label: (ctx) => fmtFull.format(Number(ctx.parsed.y || 0)) } },
-            datalabels: {
-                anchor: "end",
-                align: "end",
-                offset: 4,
-                color: "#0f172a",
-                formatter: (v) => (v ? fmtCompact.format(Number(v)) : ""),
-            },
+            datalabels: { display: false }, // keep the line clean
         },
         scales: {
             x: { grid: { display: false } },
@@ -152,6 +122,32 @@ export default function SpendingCharts({ transactions }: Props) {
                 border: { display: false },
             },
         },
+        elements: {
+            line: { tension: 0.35, borderWidth: 2.5 },
+            point: { radius: 2, hoverRadius: 5, hitRadius: 10 },
+        },
+        animation: { duration: 600, easing: "easeOutQuart" },
+    };
+
+    const lineData = {
+        labels: monthly.labels,
+        datasets: [
+            {
+                label: "Monthly Total",
+                data: monthly.data,
+                borderColor: "#00854bf2",
+                backgroundColor: (ctx: ScriptableContext<"line">) => {
+                    const { chart } = ctx;
+                    const { ctx: c, chartArea } = chart;
+                    if (!chartArea) return "rgba(79,70,229,0.08)";
+                    const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    g.addColorStop(0, "#00854bf2");
+                    g.addColorStop(1, "rgba(149, 241, 133, 0.04)");
+                    return g;
+                },
+                fill: true,
+            },
+        ],
     };
 
     const hasCatData = hasData && byCatRaw.data.some((v) => v > 0);
@@ -219,7 +215,7 @@ export default function SpendingCharts({ transactions }: Props) {
             {/* Charts (always visible) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-4 rounded shadow" style={{ height: 340 }}>
-                    <Bar data={barData} options={optionsBar} />
+                    <Line data={lineData} options={lineOptions} />
                 </div>
                 <div className="bg-white p-4 rounded shadow" style={{ height: 340 }}>
                     <Doughnut data={doughnutData} options={optionsDoughnut} />
