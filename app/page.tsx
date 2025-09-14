@@ -5,11 +5,14 @@ import TransactionForm from "./components/TransactionForm";
 import { Transaction, NewTransaction } from "../types/Transaction";
 import TransactionList from "./components/TransactionList";
 import SpendingCharts from "./components/SpendingCharts";
+import useSort, { type SortBy } from "./hooks/useSort";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { sorted, sortBy, setSortBy, sortDir, toggleSortDir } = useSort(transactions);
 
   const load = async () => {
     try {
@@ -71,12 +74,36 @@ export default function DashboardPage() {
 
         {/* List */}
         <div className="md:col-span-2 bg-white p-4 rounded shadow flex flex-col gap-4">
-          <h2 className="text-xl text-black font-semibold">Transactions</h2>
+          <div className="flex items-center justify-between">
+
+            <h2 className="text-xl text-black font-semibold">Transactions</h2>
+            <div className="flex items-center gap-2">
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortBy)}
+              >
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+              </select>
+              <button
+                className="border rounded px-2 py-1 text-sm"
+                onClick={toggleSortDir}
+                title="Toggle sort direction"
+              >
+                {sortDir === "asc" ? "↑" : "↓"}
+              </button>
+            </div>
+          </div>
+
           {error && <p className="text-red-600">Error: {error}</p>}
           {loading ? (
             <p>Loading…</p>
           ) : (
-            <TransactionList transactions={transactions} onDelete={handleDelete} />
+            <div className="h-65 overflow-y-auto pr-2" style={{ scrollbarGutter: "stable" }}>
+              <TransactionList transactions={sorted} onDelete={handleDelete} />
+            </div>
           )}
         </div>
       </div>
