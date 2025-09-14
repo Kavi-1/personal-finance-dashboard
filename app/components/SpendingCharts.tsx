@@ -20,26 +20,7 @@ const CATEGORY_BASE = [
     "#FB923C",
 ];
 
-function hexToRgba(hex: string, a = 0.9) {
-    const m = hex.replace("#", "");
-    const r = parseInt(m.slice(0, 2), 16);
-    const g = parseInt(m.slice(2, 4), 16);
-    const b = parseInt(m.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-// same colors for each category
-function hashLabelToIndex(label: string, mod: number) {
-    let h = 0;
-    for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) | 0;
-    return Math.abs(h) % mod;
-}
-
-function colorsForLabels(labels: string[]) {
-    const bg = labels.map(l => hexToRgba(CATEGORY_BASE[hashLabelToIndex(l, CATEGORY_BASE.length)], 0.88));
-    const hover = labels.map(l => hexToRgba(CATEGORY_BASE[hashLabelToIndex(l, CATEGORY_BASE.length)], 0.7));
-    return { bg, hover };
-}
+import { colorsForLabels } from "@/constants/categoryStyle";
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Tooltip, Legend, Title, Filler, ChartDataLabels);
 
