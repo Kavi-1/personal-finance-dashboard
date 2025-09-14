@@ -44,8 +44,8 @@ function colorsForLabels(labels: string[]) {
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Tooltip, Legend, Title, Filler, ChartDataLabels);
 
 ChartJS.defaults.font.family =
-    "'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-ChartJS.defaults.font.size = 12;
+    '"Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial';
+ChartJS.defaults.font.size = 14;
 ChartJS.defaults.color = "#334155"; // slate-700
 
 type Props = { transactions: Transaction[] };
