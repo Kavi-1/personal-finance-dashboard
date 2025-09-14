@@ -103,13 +103,6 @@ function aggregateByCategory(transactions: Transaction[]) {
     return { labels, data };
 }
 
-function makePalette(n: number, alpha = 0.9) {
-    return Array.from({ length: Math.max(n, 1) }, (_, i) => {
-        const hue = Math.round((360 / Math.max(n, 1)) * i);
-        return `hsla(${hue}, 70%, 55%, ${alpha})`;
-    });
-}
-
 export default function SpendingCharts({ transactions }: Props) {
     const hasData = (transactions?.length ?? 0) > 0;
 
