@@ -18,8 +18,8 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(`GET /api/transactions failed`);
       const data: Transaction[] = await res.json();
       setTransactions(data);
-    } catch (e: any) {
-      setError(e.message || "Failed to load");
+    } catch {
+      setError("Failed to load");
     } finally {
       setLoading(false);
     }
@@ -39,8 +39,8 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(`POST /api/transactions failed`);
       const created: Transaction = await res.json();
       setTransactions((prev) => [created, ...prev]);
-    } catch (e: any) {
-      alert(e.message || "Failed to add");
+    } catch {
+      alert("Failed to add");
     }
   };
 
