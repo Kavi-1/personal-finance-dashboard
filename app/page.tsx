@@ -6,6 +6,12 @@ import { Transaction, NewTransaction } from "../types/Transaction";
 import TransactionList from "./components/TransactionList";
 import SpendingCharts from "./components/SpendingCharts";
 import useSort, { type SortBy } from "./hooks/useSort";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -68,32 +74,37 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Form */}
         <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4 text-black">Add Transaction</h2>
+
+          <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg h-14 px-3 mb-4">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900">Add Transaction</h2>
+          </div>
+
           <TransactionForm onAdd={handleAddTransaction} />
         </div>
 
         {/* List */}
         <div className="md:col-span-2 bg-white p-4 rounded shadow flex flex-col gap-4">
-          <div className="flex items-center justify-between">
 
-            <h2 className="text-xl text-black font-semibold">Transactions</h2>
+          <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg h-14 px-3">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900">Transactions</h2>
             <div className="flex items-center gap-2">
-              <select
-                className="border rounded px-2 py-1 text-sm"
+              <TextField
+                select
+                size="small"
+                label="Sort by"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortBy)}
+                sx={{ minWidth: 150 }}
               >
-                <option value="date">Date</option>
-                <option value="amount">Amount</option>
-                <option value="category">Category</option>
-              </select>
-              <button
-                className="border rounded px-2 py-1 text-sm"
-                onClick={toggleSortDir}
-                title="Toggle sort direction"
-              >
-                {sortDir === "asc" ? "↑" : "↓"}
-              </button>
+                <MenuItem value="date">Date</MenuItem>
+                <MenuItem value="amount">Amount</MenuItem>
+                <MenuItem value="category">Category</MenuItem>
+              </TextField>
+              <Tooltip title={sortDir === "asc" ? "Ascending" : "Descending"}>
+                <IconButton color="primary" onClick={toggleSortDir} size="small" aria-label="Toggle sort direction">
+                  {sortDir === "asc" ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
             </div>
           </div>
 

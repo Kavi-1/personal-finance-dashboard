@@ -9,15 +9,16 @@ export default function useSort(transactions: Transaction[]) {
     const [sortDir, setSortDir] = useState<SortDir>("desc");
 
     const sorted = useMemo(() => {
-        const arr = [...transactions];
-        arr.sort((a, b) => {
-            let cmp = 0;
-            if (sortBy === "date") cmp = a.date.localeCompare(b.date); // "YYYY-MM-DD" sorts well
-            else if (sortBy === "amount") cmp = a.amount - b.amount;
-            else cmp = a.category.localeCompare(b.category, undefined, { sensitivity: "base" });
-            return sortDir === "asc" ? cmp : -cmp;
+        const sign = sortDir === "asc" ? 1 : -1;
+        return [...transactions].sort((a, b) => {
+            const cmp =
+                sortBy === "amount"
+                    ? a.amount - b.amount
+                    : sortBy === "date"
+                        ? (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0)
+                        : a.category.localeCompare(b.category, undefined, { sensitivity: "base" });
+            return cmp * sign;
         });
-        return arr;
     }, [transactions, sortBy, sortDir]);
 
     const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
