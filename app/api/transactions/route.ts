@@ -1,39 +1,33 @@
 import { NextResponse } from "next/server";
 import getCollection, { TRANSACTIONS_COLLECTION } from "@/lib/db";
-
-type TransactionDoc = {
-    amount: number;
-    category: string;
-    date: string;
-    notes?: string;
-    createdAt: Date;
-};
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
-    const col = await getCollection<TransactionDoc>(TRANSACTIONS_COLLECTION);
-    const docs = await col.find({}).sort({ _id: -1 }).toArray(); // inferred WithId<TransactionDoc>[]
-    const data = docs.map(({ _id, ...rest }) => ({ id: String(_id), ...rest }));
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const col = await getCollection(TRANSACTIONS_COLLECTION);
+    const docs = await col.find({ userEmail: session.user.email }).sort({ _id: -1 }).toArray();
+    const data = docs.map(({ _id, ...rest }: any) => ({ id: String(_id), ...rest }));
     return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-    const body = (await req.json()) as {
-        amount: number | string;
-        category: string;
-        date: string;
-        notes?: string;
-    };
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const doc: TransactionDoc = {
-        amount: Number(body.amount),
-        category: body.category,
-        date: body.date,
-        ...(body.notes ? { notes: body.notes } : {}),
+    const { amount, category, date, notes } = await req.json();
+    const doc = {
+        userEmail: session.user.email, // tie to the user
+        amount: Number(amount),
+        category,
+        date,
+        notes,
         createdAt: new Date(),
     };
 
-    const col = await getCollection<TransactionDoc>(TRANSACTIONS_COLLECTION);
+    const col = await getCollection(TRANSACTIONS_COLLECTION);
     const res = await col.insertOne(doc);
-
     return NextResponse.json({ id: String(res.insertedId), ...doc }, { status: 201 });
 }
