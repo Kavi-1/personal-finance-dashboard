@@ -7,18 +7,18 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 import type { Transaction } from "../../types/Transaction";
 
 // better colors
-const CATEGORY_BASE = [
-    "#6366F1",
-    "#10B981",
-    "#0EA5E9",
-    "#F59E0B",
-    "#F43F5E",
-    "#8B5CF6",
-    "#14B8A6",
-    "#84CC16",
-    "#3B82F6",
-    "#FB923C",
-];
+// const CATEGORY_BASE = [
+//     "#6366F1",
+//     "#10B981",
+//     "#0EA5E9",
+//     "#F59E0B",
+//     "#F43F5E",
+//     "#8B5CF6",
+//     "#14B8A6",
+//     "#84CC16",
+//     "#3B82F6",
+//     "#FB923C",
+// ];
 
 import { colorsForLabels } from "@/constants/categoryStyle";
 

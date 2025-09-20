@@ -29,7 +29,6 @@ async function connect(): Promise<Db> {
     return db;
 }
 
-// 👇 FIXED typing issue
 export default async function getCollection<T extends Document = Document>(
     collectionName: string
 ): Promise<Collection<T>> {

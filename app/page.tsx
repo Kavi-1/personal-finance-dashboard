@@ -88,7 +88,7 @@ export default function DashboardPage() {
       {/* Navbar */}
       <nav className="bg-white border border-slate-200 shadow p-4 rounded mb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Personal Finance Dashboard</h1>
+          <h1 className="text-2xl text-black font-bold">Personal Finance Dashboard</h1>
           <AuthButtons />
         </div>
       </nav>
