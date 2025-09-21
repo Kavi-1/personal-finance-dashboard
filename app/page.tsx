@@ -13,9 +13,8 @@ import Tooltip from "@mui/material/Tooltip";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AuthButtons from "./components/AuthButtons";
-import { useSession, signIn } from "next-auth/react";
-import Button from "@mui/material/Button";
-import GoogleIcon from "@mui/icons-material/Google";
+import { useSession } from "next-auth/react";
+import { addDemo, removeDemo } from "../lib/demoStorage";
 
 export default function DashboardPage() {
   const { status } = useSession();
@@ -23,6 +22,7 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
 
   const { sorted, sortBy, setSortBy, sortDir, toggleSortDir } = useSort(transactions);
 
@@ -33,13 +33,16 @@ export default function DashboardPage() {
 
       // for when user is not signed in 
       if (res.status === 401) {
+        sessionStorage.removeItem("pf_demo_transactions_v1");
         setTransactions([]);
+        setDemoMode(true);
         return;
       }
 
       if (!res.ok) throw new Error("GET /api/transactions failed");
       const data: Transaction[] = await res.json();
       setTransactions(data);
+      setDemoMode(false);
     } catch {
       setError("Failed to load");
     } finally {
@@ -52,13 +55,21 @@ export default function DashboardPage() {
       setLoading(true);
       load();
     } else if (status === "unauthenticated") {
+      sessionStorage.removeItem("pf_demo_transactions_v1");
       setTransactions([]);
       setLoading(false);
       setError(null);
+      setDemoMode(true);
     }
+
   }, [status]);
 
   const handleAddTransaction = async (t: NewTransaction) => {
+    if (demoMode) {
+      const created = addDemo(t as any);
+      setTransactions((prev) => [created as unknown as Transaction, ...prev]);
+      return;
+    }
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
@@ -74,6 +85,11 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (demoMode) {
+      removeDemo(id);
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      return;
+    }
     const res = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
     if (res.ok) {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
@@ -100,16 +116,9 @@ export default function DashboardPage() {
             <h2 className="text-lg md:text-xl font-semibold text-slate-900">Add Transaction</h2>
           </div>
 
-          {status === "authenticated" ? (
+          {status === "authenticated" || demoMode ? (
             <TransactionForm onAdd={handleAddTransaction} />
-          ) : (
-            <div className="py-6 text-center space-y-3">
-              <p className="text-slate-600">Please sign in to add transactions.</p>
-              <Button variant="outlined" startIcon={<GoogleIcon />} onClick={() => signIn("google")}>
-                Sign in with Google
-              </Button>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* List */}
@@ -139,19 +148,12 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {status === "unauthenticated" ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
-              <p className="text-slate-600">Please sign in to view your transactions.</p>
-              <Button variant="outlined" startIcon={<GoogleIcon />} onClick={() => signIn("google")}>
-                Sign in with Google
-              </Button>
-            </div>
-          ) : loading ? (
+          {loading ? (
             <p className="text-slate-600">Loading…</p>
           ) : error ? (
             <p className="text-red-600">Error: {error}</p>
           ) : transactions.length === 0 ? (
-            <p className="text-slate-600">No transactions yet.</p>
+            <p className="text-slate-600">No transactions yet. Add demo transactions or sign in with Google for a personalized account.</p>
           ) : (
             <div className="h-65 overflow-y-auto pr-2" style={{ scrollbarGutter: "stable" }}>
               <TransactionList transactions={sorted} onDelete={handleDelete} />

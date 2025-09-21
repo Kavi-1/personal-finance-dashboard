@@ -26,7 +26,6 @@ export async function GET() {
         .sort({ _id: -1 })
         .toArray()) as WithId<DbTxn>[];
 
-    // map mongo to your transaction type
     const data: Transaction[] = docs.map((d) => ({
         id: String(d._id),
         amount: d.amount,
