@@ -15,6 +15,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AuthButtons from "./components/AuthButtons";
 import { useSession } from "next-auth/react";
 import { addDemo, removeDemo } from "../lib/demoStorage";
+import type { DemoTransaction } from "../lib/demoStorage";
 
 export default function DashboardPage() {
   const { status } = useSession();
@@ -66,7 +67,7 @@ export default function DashboardPage() {
 
   const handleAddTransaction = async (t: NewTransaction) => {
     if (demoMode) {
-      const created = addDemo(t as any);
+      const created = addDemo(t as Omit<DemoTransaction, "id" | "createdAt">);
       setTransactions((prev) => [created as unknown as Transaction, ...prev]);
       return;
     }
