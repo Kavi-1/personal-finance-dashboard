@@ -77,8 +77,15 @@ function aggregateByCategory(transactions: Transaction[]) {
 export default function SpendingCharts({ transactions }: Props) {
     const hasData = (transactions?.length ?? 0) > 0;
 
-    const total = transactions.reduce((s, t) => s + (Number(t.amount) || 0), 0);
-    const avg = transactions.length ? total / transactions.length : 0;
+    const isIncome = (c?: string) => (c || "").toLowerCase() === "income";
+    const expenseTx = transactions.filter(t => !isIncome(t.category));
+    const incomeTotal = transactions
+        .filter(t => isIncome(t.category))
+        .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+
+    const total = expenseTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+    const avg = expenseTx.length ? total / expenseTx.length : 0;
+    const net = incomeTotal - total;
 
     const monthly = aggregateByMonthLastN(transactions, 12); // always returns 12 labels
     const byCatRaw = aggregateByCategory(transactions);
@@ -178,18 +185,28 @@ export default function SpendingCharts({ transactions }: Props) {
     return (
         <div className="space-y-6">
             {/* KPI header (always visible) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                 <div className="bg-white p-4 rounded shadow">
-                    <div className="text-sm text-slate-500">Total Spent</div>
+                    <div className="text-sm text-slate-500">Transactions</div>
+                    <div className="text-2xl text-black font-semibold">{transactions.length}</div>
+                </div>
+                <div className="bg-white p-4 rounded shadow">
+                    <div className="text-sm text-slate-500">Total Income</div>
+                    <div className="text-2xl text-sky-700 font-semibold">{fmtFull.format(incomeTotal)}</div>
+                </div>
+                <div className="bg-white p-4 rounded shadow">
+                    <div className="text-sm text-slate-500">Total Expenses</div>
                     <div className="text-2xl text-emerald-700 font-semibold">{fmtFull.format(total)}</div>
+                </div>
+                <div className="bg-white p-4 rounded shadow">
+                    <div className="text-sm text-slate-500">Net (Income − Expenses)</div>
+                    <div className={`text-2xl font-semibold ${net >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                        {fmtFull.format(net)}
+                    </div>
                 </div>
                 <div className="bg-white p-4 rounded shadow">
                     <div className="text-sm text-slate-500">Average per Transaction</div>
                     <div className="text-2xl text-emerald-700 font-semibold">{fmtFull.format(avg)}</div>
-                </div>
-                <div className="bg-white p-4 rounded shadow">
-                    <div className="text-sm text-slate-500">Transactions</div>
-                    <div className="text-2xl text-black font-semibold">{transactions.length}</div>
                 </div>
             </div>
 

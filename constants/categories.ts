@@ -1,4 +1,5 @@
 export const CATEGORIES = [
+    "Income",
     "Food/Groceries",
     "Dining",
     "Transport",
