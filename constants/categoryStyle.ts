@@ -11,6 +11,7 @@ import SchoolIcon from "@mui/icons-material/School";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import SavingsIcon from "@mui/icons-material/Savings";
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 // Consistent color palette
 export const CATEGORY_BASE = [
@@ -50,15 +51,19 @@ export function colorsForLabels(labels: string[]) {
 
 // For the list avatars/chips
 const ICONS: Record<string, ElementType> = {
+    Income: AttachMoneyIcon,
+    "Food/Groceries": LocalGroceryStoreIcon,
     Groceries: LocalGroceryStoreIcon,
     Dining: RestaurantIcon,
     Transport: DirectionsCarIcon,
+    Rent: HomeIcon,
     Housing: HomeIcon,
     Entertainment: MovieIcon,
     Health: MedicalServicesIcon,
     Fitness: FitnessCenterIcon,
     Education: SchoolIcon,
     Shopping: ShoppingCartIcon,
+    Utilities: PaymentsIcon,
     Bills: PaymentsIcon,
     Savings: SavingsIcon,
 };

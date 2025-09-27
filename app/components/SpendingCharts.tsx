@@ -87,8 +87,8 @@ export default function SpendingCharts({ transactions }: Props) {
     const avg = expenseTx.length ? total / expenseTx.length : 0;
     const net = incomeTotal - total;
 
-    const monthly = aggregateByMonthLastN(transactions, 12); // always returns 12 labels
-    const byCatRaw = aggregateByCategory(transactions);
+    const monthly = aggregateByMonthLastN(expenseTx, 12); // always returns 12 labels
+    const byCatRaw = aggregateByCategory(expenseTx);
 
     // line chart
     const lineOptions: ChartOptions<"line"> = {
